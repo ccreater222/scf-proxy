@@ -19,14 +19,14 @@ func main() {
 	cloudfunction.Start(server)
 }
 func init() {
-	fmt.Println("scf-proxy-server")
+	fmt.Println("hello world")
 	log.SetFormatter(new(Formatter))
 }
-func server(ctx context.Context, req events.APIGatewayRequest) (resp events.APIGatewayResponse, err error) {
-	bytedata, _ := json.Marshal(req)
-	log.Printf("[请求接收] \n => ctx \n%v \n => req \n%s \n========== \n\n", ctx, string(bytedata))
+func server(context context.Context, request events.APIGatewayRequest) (response events.APIGatewayResponse, err error) {
+	bytedata, _ := json.Marshal(request)
+	log.Printf("[Receive] \n => context \n%v \n => request \n%s \n========== \n\n", context, string(bytedata))
 
-	return scf.Handler(ctx, req), nil
+	return scf.Handler(context, request), nil
 }
 
 type Formatter struct{}

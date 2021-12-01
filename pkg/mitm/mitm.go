@@ -2,6 +2,7 @@ package mitm
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
@@ -44,6 +45,21 @@ func Wrap(handler http.Handler, cryptoConf *CryptoConfig) (*HandlerWrapper, erro
 
 // ServeHTTP implements ServeHTTP from http.Handler
 func (wrapper *HandlerWrapper) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	auth := req.Header.Get("Proxy-Authorization")
+	if auth =="" || len(auth) < 6{
+		resp.Write([]byte("hello world"))
+		return
+	}
+	auth = auth[6:]
+	decode_auth,err := base64.StdEncoding.DecodeString(auth)
+	if err!=nil{
+		resp.Write([]byte("hello world"))
+		return
+	}
+	if string(decode_auth) != "zabbix:0xfafu"{
+		resp.Write([]byte("hello world"))
+		return
+	}
 	if req.Method == CONNECT {
 		wrapper.intercept(resp, req)
 	} else {

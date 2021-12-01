@@ -43,7 +43,7 @@ func forworld(reqevent *DefineEvent) (*RespEvent, error) {
 	var (
 		respvent = new(RespEvent)
 	)
-	rawreq, err := base64.StdEncoding.DecodeString(reqevent.Content)
+	rawreq, err := base64.StdEncoding.DecodeString(string(Rot13(bytes.NewBufferString(reqevent.Content).Bytes())))
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +72,14 @@ func forworld(reqevent *DefineEvent) (*RespEvent, error) {
 	defer resp.Body.Close()
 
 	byteresp, _ := ioutil.ReadAll(resp.Body)
-	respvent.Data = base64.StdEncoding.EncodeToString(byteresp)
+	respvent.Data = string(Rot13([]byte(base64.StdEncoding.EncodeToString(byteresp))))
 	respvent.Status = true
+	var b bytes.Buffer
+	headerWriter := bufio.NewWriter(&b)
+	resp.Header.Write(headerWriter)
+	headerWriter.Flush()
+	header ,_:=ioutil.ReadAll(bufio.NewReader(&b))
+	respvent.Header = string(Rot13([]byte(base64.StdEncoding.EncodeToString(header))))
 
 	return respvent, nil
 }
