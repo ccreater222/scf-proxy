@@ -14,6 +14,7 @@ import (
 var (
 	ScfApiProxyUrl string
 )
+
 func unitRot13(x byte) byte {
 	capital := x >= 'A' && x <= 'Z'
 	if !capital && (x < 'a' || x > 'z') {
@@ -26,21 +27,21 @@ func unitRot13(x byte) byte {
 	}
 	return x
 }
-func Rot13(x []byte)  []byte {
+func Rot13(x []byte) []byte {
 	b := bytes.NewBuffer([]byte{})
-	for i := range x{
+	for i := range x {
 		b.WriteByte(unitRot13(x[i]))
 	}
 	return b.Bytes()
 }
-func ParseHeader(x string)(result map[string]string){
-	x = strings.Trim(x,"\r\n ")
-	x = strings.Replace(x,"\r\n","\n",-1)
-	paresd := strings.Split(x,"\n")
-	result = make(map[string]string,len(paresd))
-	for i:=0;i<len(paresd);i+=1{
-		kvmap := strings.SplitN(paresd[i],": ",2)
-		if len(kvmap)!=2{
+func ParseHeader(x string) (result map[string]string) {
+	x = strings.Trim(x, "\r\n ")
+	x = strings.Replace(x, "\r\n", "\n", -1)
+	paresd := strings.Split(x, "\n")
+	result = make(map[string]string, len(paresd))
+	for i := 0; i < len(paresd); i += 1 {
+		kvmap := strings.SplitN(paresd[i], ": ", 2)
+		if len(kvmap) != 2 {
 			continue
 		}
 		result[kvmap[0]] = kvmap[1]
@@ -99,7 +100,7 @@ func HandlerHttp(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
-	headers,err := base64.StdEncoding.DecodeString(string(Rot13(bytes.NewBufferString(respevent.Header).Bytes())))
+	headers, err := base64.StdEncoding.DecodeString(string(Rot13(bytes.NewBufferString(respevent.Header).Bytes())))
 	if err != nil {
 		log.Println(err)
 		log.Println(string(respevent.Data))
@@ -107,13 +108,12 @@ func HandlerHttp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header_map :=ParseHeader(string(headers))
-	for header,value := range header_map{
-		if w.Header().Get(header)==""{
-			w.Header().Add(header,value)
+	header_map := ParseHeader(string(headers))
+	for header, value := range header_map {
+		if w.Header().Get(header) == "" || strings.ToLower(header) == "set-cookie" {
+			w.Header().Add(header, value)
 		}
 	}
-
 
 	resp.Body.Close()
 
